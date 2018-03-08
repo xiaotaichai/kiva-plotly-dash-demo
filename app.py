@@ -51,6 +51,20 @@ df['year'] = df.year.astype(str).astype(int)
 countries_funded_amount = df.groupby(['year', 'country']).size()
 ######
 
+df["num_male"] = df["borrower_genders"].map(lambda row: len([gender == "male" for gender in row.split(", ")]))
+df["num_female"] = df["borrower_genders"].map(lambda row: len([gender == "female" for gender in row.split(", ")]))
+df["num_gendered_borrowers"] = df["borrower_genders"].map(lambda row: len([person for person in row.split(", ")]))
+df["pct_male"] = df["num_male"] / df["num_gendered_borrowers"]
+df["pct_female"] = df["num_female"] / df["num_gendered_borrowers"]
+
+num_borrowers_by_country = df.groupby("country")[["num_male", "num_female", "num_gendered_borrowers"]].sum().sort_values("num_gendered_borrowers", ascending=False).head(5)
+
+top_5_categories_male = df[df["pct_male"] == 1].groupby("activity").count()["id"].sort_values(ascending=False).head()
+
+top_5_categories_female = df[df["pct_female"] == 1].groupby("activity").count()["id"].sort_values(ascending=False).head()
+
+
+
 # Create a Dash object instance
 app = dash.Dash()
 

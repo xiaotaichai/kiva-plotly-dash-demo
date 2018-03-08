@@ -14,6 +14,11 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import numpy as np
 
+import logging
+
+LOGGING_FORMAT = '%(asctime)-15s  %(levelname)-8s %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT)
+
 # Import your dataframe from a csv with pandas
 df = pd.read_csv('data/kiva_loans.csv')
 
@@ -51,11 +56,15 @@ df['year'] = df.year.astype(str).astype(int)
 countries_funded_amount = df.groupby(['year', 'country']).size()
 ######
 
-df["num_male"] = df["borrower_genders"].map(lambda row: len([gender == "male" for gender in row.split(", ")]))
-df["num_female"] = df["borrower_genders"].map(lambda row: len([gender == "female" for gender in row.split(", ")]))
-df["num_gendered_borrowers"] = df["borrower_genders"].map(lambda row: len([person for person in row.split(", ")]))
+
+logging.debug("creating gender columns...")
+df["num_male"] = df["borrower_genders"].map(lambda row: sum(gender == "male" for gender in str(row).split(", ")))
+df["num_female"] = df["borrower_genders"].map(lambda row: sum(gender == "female" for gender in str(row).split(", ")))
+df["num_gendered_borrowers"] = df["borrower_genders"].map(lambda row: len([person for person in str(row).split(", ")]))
 df["pct_male"] = df["num_male"] / df["num_gendered_borrowers"]
 df["pct_female"] = df["num_female"] / df["num_gendered_borrowers"]
+
+logging.debug("creating gender statistics...")
 
 num_borrowers_by_country = df.groupby("country")[["num_male", "num_female", "num_gendered_borrowers"]].sum().sort_values("num_gendered_borrowers", ascending=False).head(5)
 

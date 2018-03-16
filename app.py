@@ -72,8 +72,8 @@ top_5_categories_male = df[df["pct_male"] == 1].groupby("activity").count()["id"
 
 top_5_categories_female = df[df["pct_female"] == 1].groupby("activity").count()["id"].sort_values(ascending=False).head()
 
-
-
+pct_female_year = df.groupby(['year', 'country'])['pct_female'].mean()
+# df.groupby(['Name', 'Fruit'])['Number'].agg('sum')
 # Create a Dash object instance
 app = dash.Dash()
 
@@ -244,7 +244,7 @@ def update_figure(selected_year):
     # snag: using .groupby() with more than one feature caused the datatype
     # to be Pandas.Series instead of Pandas.DataFrame. So, we couldn't just do
     # countries_funded_amount[countries_funded_amount['year'] == selected_year]
-    one_year_data = countries_funded_amount.loc[selected_year]
+    one_year_data = pct_female_year.loc[selected_year]
 
     logzMin = np.log(one_year_data.values.min())
     logzMax = np.log(one_year_data.values.max())

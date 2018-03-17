@@ -72,10 +72,15 @@ top_5_categories_male = df[df["pct_male"] == 1].groupby("activity").count()["id"
 
 top_5_categories_female = df[df["pct_female"] == 1].groupby("activity").count()["id"].sort_values(ascending=False).head()
 
+
 pct_female_year = df.groupby(['year', 'country'])['pct_female'].mean()
 # df.groupby(['Name', 'Fruit'])['Number'].agg('sum')
 # Create a Dash object instance
 app = dash.Dash()
+
+app.css.append_css({
+    'external_url': 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'
+})
 
 # The layout attribute of the Dash object, app
 # is where you include the elements you want to appear in the
@@ -84,71 +89,61 @@ app = dash.Dash()
 # inside the function update_figure, but we set the id
 # here so we can reference it inside update_figure
 app.layout = html.Div(className='container', children=[
-    html.H1(children='Top 3 countries Violin distributions',  # add a title
+    html.Div([  # this starts the row
+        html.Div(  # this is the left graph of the row
+            [html.H3(children='Top 5 activities for loans to Females',
+                    style={
+                        'textAlign': 'center',  # center the header
+                        'color': '#7F7F7F'
+            }),
+            dcc.Graph(  # add a bar graph to dashboard
+                id='basic-interactions',
+                figure={
+                    'data': [
+                        {
+                            'x': top_5_categories_female.index,
+                            'y': top_5_categories_female,
+                            'type': 'bar',
+                            'opacity': .6,  # changes the bar chart's opacity
+                            'name': 'Females'
+                        }
+                    ],
+                    'layout': go.Layout(
+                        xaxis={'title': 'Activity'},
+                        yaxis={'title': 'Count', 'range': [0,61000]},
+                    )
+                }
+            )], className="col-md-6"
+        ),
+        html.H3(
+            children='Top 5 activities for loans to Males',
             style={
                 'textAlign': 'center',  # center the header
                 'color': '#7F7F7F'
                 # https://www.biotechnologyforums.com/thread-7742.html more color code options
-            }),
-    html.Hr(),
-    html.Div(className='two columns', children=[
-        dcc.RadioItems(  # buttons that select which y value in violin plots
-            id='items',
-            options=[
-                {'label': 'term in months', 'value': 'term_in_months'},
-                {'label': 'loan amount', 'value': 'loan_amount'},
-                {'label': 'lender count', 'value': 'lender_count'},
-                {'label': 'funded amount', 'value': 'funded_amount'}
-            ],
-            value='term_in_months',
-            style={'display': 'block',
-                   'textAlign': 'center',
-                   'color': '#7FDBFF'}
+            }
         ),
-        html.Hr(),
-        dcc.RadioItems(  # more options
-            id='points',
-            options=[
-                {'label': 'Display All Points', 'value': 'all'},
-                {'label': 'Hide Points', 'value': False},
-                {'label': 'Display Outliers', 'value': 'outliers'},
-                {'label': 'Display Suspected Outliers',
-                 'value': 'suspectedoutliers'},
-            ],
-            value='all',
-            style={'display': 'block',
-                   'textAlign': 'center',
-                   'color': '#7FDBFF'}
-        ),
-    ]),
-    html.Div(dcc.Graph(id='graph'), className='ten columns'),
-    html.H1(
-        children='Top 5 activities for loans',
-        style={
-            'textAlign': 'center',  # center the header
-            'color': '#7F7F7F'
-            # https://www.biotechnologyforums.com/thread-7742.html more color code options
-        }
-    ),
-    html.Div(dcc.Graph(  # add a bar graph to dashboard
-        id='basic-interactions',
-        figure={
-            'data': [
-                {
-                    'x': top5.index,
-                    'y': top5,
-                    'type': 'bar',
-                    'opacity': .6  # changes the bar chart's opacity
-                }
+        html.Div(dcc.Graph(  # add a bar graph to dashboard
+            id='male_categories',
+            figure={
+                'data': [
+                    {
+                        'x': top_5_categories_male.index,
+                        'y': top_5_categories_male,
+                        'type': 'bar',
+                        'opacity': .6,  # changes the bar chart's opacity
+                        'name': 'Males'
+                    }
+                ],
+                'layout': go.Layout(
+                    xaxis={'title': 'Activity'},
+                    yaxis={'title': 'Count', 'range': [0, 61000]},
 
-            ],
-            'layout': go.Layout(
-                xaxis={'title': 'Activity'},
-                yaxis={'title': 'Count'},
-            )
-        }
+                )
+            }
 
-    )),
+        ), className="col-md-6")
+    ], className="row"),
     # Richard's cloropleth map
     html.Div([
         html.Hr(),
@@ -174,60 +169,22 @@ app.layout = html.Div(className='container', children=[
         ],
             style={'marginLeft': 40, 'marginRight': 40})
     ]),
-        html.Div([
-        dcc.Graph(id='scatter-with-slider', animate='true'),
-        dcc.Slider(
-            id='scatter-slider',
-            min=2014,
-            max=2017,
-            value=2014,
-            step=1,
-            marks={str(year): str(year) for year in [2014, 2015, 2016, 2017]}
+    html.Div(
+        style={'marginLeft': 40, 'marginRight': 40, 'paddingTop': 50, 'paddingBottom': 50}
+    ),
+    html.Div([
+    dcc.Graph(id='scatter-with-slider', animate='true',  style={'marginTop': 30}),
+     dcc.Slider(
+        id='scatter-slider',
+        min=2014,
+        max=2017,
+        value=2014,
+        step=1,
+        marks={str(year): str(year) for year in [2014, 2015, 2016, 2017]}
     )
 ])
 ])
 
-
-@app.callback(
-    Output('graph', 'figure'), [
-        Input('items', 'value'),
-        Input('points', 'value')])
-def update_graph(value, points):
-    return {
-        'data': [
-            {
-                'type': 'violin',
-                'x': a['country'][a['country'] == 'Philippines'],
-                # specify a violin plot filtered 'value' of data column
-                'y': a[value],
-                'text': ['Sample {}'.format(i) for i in range(len(Beau_df))],
-                'points': points,
-                'jitter': .7  # set the space of points
-            },
-            {
-                'type': 'violin',
-                'x': a['country'][a['country'] == 'Kenya'],
-                'y': a[value],
-                'text': ['Sample {}'.format(i) for i in range(len(Beau_df))],
-                'points': points,
-                'jitter': .7
-            },
-            {
-                'type': 'violin',
-                'x': a['country'][a['country'] == 'United States'],
-                'y': a[value],
-                'text': ['Sample {}'.format(i) for i in range(len(Beau_df))],
-                'points': points,
-                'jitter': .7
-            }
-        ],
-
-        'layout': go.Layout(
-            yaxis={'title': value},
-            showlegend=False
-            # since we listed them as different dictionaries within 'data' they are automatically separated by color with a legend. Remove this
-        )
-    }
 
 
 # Notice the Input and Outputs in this wrapper correspond to
@@ -275,14 +232,14 @@ def update_figure(selected_year):
         marker={'line': {'width': 0.5}},  # width of country boundaries
         colorbar={'autotick': True,
                   'tickprefix': '',  # could be useful if plotting $ values
-                  'title': '# of loans',  # colorbar title
+                  'title': 'Percent Loans to Females',  # colorbar title
                   'tickvals': log_ticks,
                   'ticktext': exp_labels
                   # transform log tick labels back to standard scale
                   },
     )]
     layout = dict(
-        title='Total Loans Per Country. Year: {}<br>Source:\
+        title='Percent of Loans to Females Per Country. Year: {}<br>Source:\
                 <a href="https://www.kaggle.com/kiva/data-science-for-good-kiva-crowdfunding"">\
                 Kaggle</a>'.format(selected_year),
         font=dict(family='Courier New, monospace', size=18, color='#7f7f7f'),
@@ -296,7 +253,7 @@ def update_figure(selected_year):
     dash.dependencies.Output('scatter-with-slider', 'figure'),
     [dash.dependencies.Input('scatter-slider', 'value')])
 def update_scatter(selected_year):
-    filtered_df = df[df['year'] == selected_year]
+    filtered_df = df[(df['year'] == selected_year) & (df['num_female'] > 0) & (df['num_male'] == 0)]
     traces = []
     for i in filtered_df.sector.unique():
         df_by_sector = filtered_df[filtered_df['sector'] == i]
@@ -307,7 +264,7 @@ def update_scatter(selected_year):
             mode='markers',
             opacity=0.7,
             marker={
-                'size': 15,
+                'size': 8,
                 'line': {'width': 0.5, 'color': 'white'}
             },
             name=i
@@ -320,9 +277,12 @@ def update_scatter(selected_year):
             yaxis={'type': 'linear', 'title': 'Lender Count', 'autorange': 'True'},
             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
             legend={'x': 0, 'y': 1},
-            hovermode='closest'
+            hovermode='closest',
+            title='Sector Breakdowns for Solely Female Loans by Year'
         )
     }
+
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)

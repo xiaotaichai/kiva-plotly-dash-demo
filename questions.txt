@@ -1,0 +1,11 @@
+1. The bar charts answer the following questions:
+	a) Are the top 5 activities for loans to males and females different?
+	b) What's the difference between the amount of loans to females and to males for the top 5 activities?
+
+2. The cloropleth maps answer the following questions;
+	a) Which country has the highest percent loans to females? Which country has the lowest percent loans to females?
+	b) Which continent has relative higher percent loans to females?
+
+3. The scatter plot answers the following questions:
+	a) Is there a relationship between loan amount and the number of lenders for solely female loans?
+	b) Which industry has relatively higher amount of solely female loans?

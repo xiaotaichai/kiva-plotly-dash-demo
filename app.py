@@ -20,7 +20,7 @@ LOGGING_FORMAT = '%(asctime)-15s  %(levelname)-8s %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT)
 
 # Import your dataframe from a csv with pandas
-df = pd.read_csv('data/kiva_loans.csv')
+df = pd.read_csv('kiva_loans.csv')
 
 ##### Beau graphs
 # subset for important columns
@@ -265,7 +265,7 @@ def update_scatter(selected_year):
             opacity=0.7,
             marker={
                 'size': 8,
-                'line': {'width': 0.5, 'color': 'white'}
+                'line': {'width': 0.5, 'color': 'blue'}
             },
             name=i
         ))
@@ -275,7 +275,7 @@ def update_scatter(selected_year):
         'layout': go.Layout(
             xaxis={'type': 'linear', 'title': 'Loan Amount', 'autorange': 'True'},
             yaxis={'type': 'linear', 'title': 'Lender Count', 'autorange': 'True'},
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+            margin={'l': 40, 'b': 40, 't': 25, 'r': 10},
             legend={'x': 0, 'y': 1},
             hovermode='closest',
             title='Sector Breakdowns for Solely Female Loans by Year'
